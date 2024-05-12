@@ -1,6 +1,7 @@
-from datetime import datetime
+import datetime
 
 from decouple import config
+from django.http import HttpResponse
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
 from rest_framework.response import Response
@@ -18,7 +19,7 @@ spotify_http_auth = HTTPBasicAuth(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 
 class SpotifyAuthView(APIView):
     def get(self, request):
-        auth_url, state = spotify_oauth.authorization_url(SPOTIFY_REDIRECT_URI)
+        auth_url, state = spotify_oauth.authorization_url('https://accounts.spotify.com/authorize')
         return Response(auth_url)
 
 class SpotifyRedirectView(APIView):
@@ -26,10 +27,21 @@ class SpotifyRedirectView(APIView):
         token = spotify_oauth.fetch_token(
             'https://accounts.spotify.com/api/token',
             auth=spotify_http_auth,
-            authorize_url=request.data
+            code=request.query_params.get('code')
         )
+        expire_time = datetime.datetime.now() + datetime.timedelta(seconds=token.get('expires_in'))
         request.session['token'] = token
-        request.session['expires_at'] = datetime.now() + token['expires_in']
+        request.session['expires_at'] = expire_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return HttpResponse(
+            """
+                <body>
+                    <script type="text/javascript">
+                        window.close()
+                    </script>
+                    <button type="button" onclick="window.close()">Click to Close</button>
+                </body>
+            """
+        )
 
 class SpotifyLogoutView(APIView):
     def get(self, request):

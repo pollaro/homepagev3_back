@@ -30,6 +30,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = [] if DEBUG else ['.jimpollaro.com']
 
+OAUTHLIB_INSECURE_TRANSPORT = True if DEBUG else False
 # Application definition
 
 INSTALLED_APPS = [
@@ -70,7 +71,7 @@ DATABASES = {
     )
 }
 
-ROOT_URLCONF = 'homepagev3_back.urls.py'
+ROOT_URLCONF = 'homepagev3_back.urls'
 
 TEMPLATES = [
     {
