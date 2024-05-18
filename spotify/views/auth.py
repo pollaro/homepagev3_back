@@ -31,7 +31,7 @@ class SpotifyRedirectView(APIView):
         )
         expire_time = datetime.datetime.now() + datetime.timedelta(seconds=token.get('expires_in'))
         request.session['token'] = token
-        request.session['expires_at'] = expire_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        request.session['expires_at'] = expire_time.isoformat()
         return HttpResponse(
             """
                 <body>
