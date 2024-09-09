@@ -1,29 +1,46 @@
 from decouple import config
 from django.shortcuts import redirect
-from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import TokenExpiredError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from homepagev3_back import settings
-from spotify.views.auth import SpotifyAuthView
+from spotify.views.auth import spotify_oauth
 
 SPOTIFY_CLIENT_ID = config('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = config('SPOTIFY_CLIENT_SECRET')
 SPOTIFY_SCOPE = config('SPOTIFY_SCOPE')
 SPOTIFY_REDIRECT_URI = config('SPOTIFY_DEBUG_REDIRECT_URI') if settings.DEBUG else config('SPOTIFY_REDIRECT_URI')
-SPOTIFY_AUTHORIZE_URL = config('SPOTIFY_AUTHORIZE_URL')
+SPOTIFY_TOKEN_URL = config('SPOTIFY_TOKEN_URL')
 
-spotify_oauth = OAuth2Session(
-    SPOTIFY_CLIENT_ID, scope=SPOTIFY_SCOPE,
-    redirect_uri=SPOTIFY_REDIRECT_URI,
-    auto_refresh_url=SPOTIFY_AUTHORIZE_URL,
-    token_updater=SpotifyAuthView.save_token
-)
 class UserView(APIView):
     def get(self, request):
         if 'token' in request.session:
             spotify_oauth.token = request.session.get('token')
-            profile_response = spotify_oauth.get('https://api.spotify.com/v1/me')
+            try:
+                profile_response = spotify_oauth.get('https://api.spotify.com/v1/me')
+            except TokenExpiredError:
+                # token = spotify_oauth.refresh_token(
+                #     SPOTIFY_TOKEN_URL,
+                #     refresh_token=spotify_oauth.token.get('refresh_token'),
+                #     body={
+                #         'client_id': SPOTIFY_CLIENT_ID,
+                #         'refresh_token': spotify_oauth.token.get('refresh_token'),
+                #         'grant_type': 'refresh_token'
+                #     }
+                # )
+                response = spotify_oauth.request('GET', 'https://accounts.spotify.com/api/token',
+                    withhold_token=True,
+                     data={
+                        'client_id': SPOTIFY_CLIENT_ID,
+                        'refresh_token': spotify_oauth.token.get('refresh_token'),
+                        'grant_type': 'refresh_token'
+                    },
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                    client_secret=SPOTIFY_CLIENT_ID
+                )
+                request.session['token'] = response
+                profile_response = spotify_oauth.get('https://api.spotify.com/v1/me')
             top_tracks_response = spotify_oauth.get('https://api.spotify.com/v1/me/top/tracks?limit=5&time_range=long_term&offset=0')
             top_artists_response = spotify_oauth.get('https://api.spotify.com/v1/me/top/artists?limit=5&time_range=long_term&offset=0')
             profile = profile_response.json()
@@ -37,7 +54,30 @@ class UserTracksView(APIView):
         if 'token' in request.session:
             spotify_oauth.token = request.session.get('token')
             market = request.query_params.get('market')
-            saved_tracks_response = spotify_oauth.get(f'https://api.spotify.com/v1/me/tracks?limit=50&offset=0&market={market}')
+            try:
+                saved_tracks_response = spotify_oauth.get(f'https://api.spotify.com/v1/me/tracks?limit=50&offset=0&market={market}')
+            except TokenExpiredError:
+                # token = spotify_oauth.refresh_token(
+                #     SPOTIFY_TOKEN_URL,
+                #     refresh_token=spotify_oauth.token.get('refresh_token'),
+                #     body={
+                #         'client_id': SPOTIFY_CLIENT_ID,
+                #         'refresh_token': spotify_oauth.token.get('refresh_token'),
+                #         'grant_type': 'refresh_token'
+                #     }
+                # )
+                response = spotify_oauth.request('GET', 'https://accounts.spotify.com/api/token',
+                     withhold_token=True,
+                     data={
+                        'client_id': SPOTIFY_CLIENT_ID,
+                        'refresh_token': spotify_oauth.token.get('refresh_token'),
+                        'grant_type': 'refresh_token'
+                    },
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                    client_secret=SPOTIFY_CLIENT_ID
+                )
+                request.session['token'] = response
+                saved_tracks_response = spotify_oauth.get(f'https://api.spotify.com/v1/me/tracks?limit=50&offset=0&market={market}')
             saved_tracks_json = saved_tracks_response.json()
             saved_tracks = saved_tracks_json.get('items', [])
             while 'next' in saved_tracks_response.json() and saved_tracks_response.json()['next']:

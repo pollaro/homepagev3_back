@@ -15,7 +15,7 @@ SPOTIFY_REDIRECT_URI = config('SPOTIFY_DEBUG_REDIRECT_URI') if settings.DEBUG el
 SPOTIFY_AUTHORIZE_URL = config('SPOTIFY_AUTHORIZE_URL')
 SPOTIFY_TOKEN_URL = config('SPOTIFY_TOKEN_URL')
 
-spotify_oauth = OAuth2Session(SPOTIFY_CLIENT_ID, scope=SPOTIFY_SCOPE, redirect_uri=SPOTIFY_REDIRECT_URI, auto_refresh_url=SPOTIFY_AUTHORIZE_URL)
+spotify_oauth = OAuth2Session(SPOTIFY_CLIENT_ID, scope=SPOTIFY_SCOPE, redirect_uri=SPOTIFY_REDIRECT_URI)
 spotify_http_auth = HTTPBasicAuth(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 
 class SpotifyAuthView(APIView):
@@ -25,9 +25,6 @@ class SpotifyAuthView(APIView):
         auth_url, state = spotify_oauth.authorization_url(SPOTIFY_AUTHORIZE_URL)
         return Response(auth_url)
 
-    @staticmethod
-    def save_token(request, token):
-        request.session['token'] = token
 
 class SpotifyRedirectView(APIView):
     def get(self, request):
@@ -38,7 +35,6 @@ class SpotifyRedirectView(APIView):
         )
         request.session['token'] = token
         spotify_oauth.token = token
-        spotify_oauth.token_updater = SpotifyAuthView.save_token
         return HttpResponse(
             """
                 <body>
