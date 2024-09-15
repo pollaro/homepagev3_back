@@ -27,9 +27,16 @@ class HBLTeamAbbreviations(aenum.Enum):
 
 
 class HBLTeam(models.Model):
-    team_id = models.IntegerField()
     name = models.CharField(max_length=25, choices=HBLTeamAbbreviations.choices())
-    yahoo_team_key = models.CharField(max_length=20)
+    yahoo_team_id = models.CharField(max_length=20)
     manager = models.ForeignKey(
         HBLManager, related_name="team", on_delete=models.SET_NULL, null=True
     )
+
+    def __str__(self):
+        return HBLTeamAbbreviations[f'{self.name}'].string
+
+    @property
+    def yahoo_team_key(self):
+        # "Gives the Yahoo team key"
+        return f'{"YAHOO_GAME_ID"}.l.{"YAHOO_HBL_ID"}.t.{self.yahoo_team_id}'

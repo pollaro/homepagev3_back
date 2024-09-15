@@ -1,10 +1,8 @@
 import logging
 
-import requests
 import xmltodict
 from decouple import config
 from django.conf import settings
-from django.core.cache import cache
 from django.http import HttpResponse
 from requests_oauthlib import OAuth2Session
 from rest_framework.response import Response
@@ -18,47 +16,27 @@ redirect_uri = (
     else config("YAHOO_REDIRECT_URI")
 )
 yahoo_oauth = OAuth2Session(
-    client_id=config("YAHOO_CLIENT_ID"), redirect_uri=redirect_uri
+    client_id=config('YAHOO_CLIENT_ID'),
+    redirect_uri=redirect_uri,
+    auto_refresh_url='https://api.login.yahoo.com/oauth2/get_token',
+    auto_refresh_kwargs={
+        'client_id': config('YAHOO_CLIENT_ID'),
+        'client_secret': config('YAHOO_CLIENT_SECRET'),
+        'redirect_uri': 'oob',
+        'grant_type': 'refresh_token',
+    }
 )
 
-
-def refresh_token():
-    if cache.ttl("access_token") <= 0 and cache.get("refresh_token"):
-        token = requests.post(
-            "https://api.login.yahoo.com/oauth2/get_token",
-            {
-                "redirect_uri": "oob",
-                "refresh_token": cache.get("refresh_token"),
-                "grant_type": "refresh_token",
-                "client_secret": config("YAHOO_CLIENT_SECRET"),
-                "client_id": config("YAHOO_CLIENT_ID"),
-            },
-        )
-        cache.set(
-            "access_token", token.json()["access_token"], timeout=3600
-        )  # 1 hour in ms
-        cache.set("refresh_token", token.json()["refresh_token"], timeout=None)
-        return Response(True)
-    return Response(False)
-
-
-def get_user():
-    if cache.get("access_token"):
-        user_guid_xml = requests.get(
-            f'{config("YAHOO_LEAGUE_API")}users;use_login=1',
-            headers={"Authorization": f"Bearer {cache.get('access_token')}"},
-        )
-        response_dict = xmltodict.parse(user_guid_xml.text)
-        return response_dict["fantasy_content"]["users"]["user"]["guid"]
-    return None
-
+def token_updater(token):
+    yahoo_oauth.token = token
+yahoo_oauth.token_updater = token_updater
 
 class OauthView(APIView):
     """
     This view that starts yahoo oauth process
     """
 
-    def post(self, request):
+    def get(self, request):
         auth_url, state = yahoo_oauth.authorization_url(
             "https://api.login.yahoo.com/oauth2/request_auth"
         )
@@ -79,11 +57,6 @@ class RedirectURIView(APIView):
                 code=code,
                 client_secret=config("YAHOO_CLIENT_SECRET"),
             )
-            cache.set(
-                "access_token", token["access_token"], timeout=3600
-            )  # 1 hour in ms
-            cache.set("refresh_token", token["refresh_token"], timeout=None)
-
             return HttpResponse(
                 """
                     <body>
@@ -95,32 +68,30 @@ class RedirectURIView(APIView):
             )
 
 
-class RefreshTokenView(APIView):
-    """
-    Using the refresh token to obtain a new token
-    """
-
+class CheckedLoggedIn(APIView):
     def get(self, request):
-        return refresh_token()
-
-
-class CheckLoggedInView(APIView):
-    """
-    Checking log in status from front-end for conditional rendering
-    """
-
-    def get(self, request):
-        logger.info(f"Debug setting is {settings.DEBUG}")
-        if cache.get("access_token"):
-            if cache.ttl("access_token") > 0:
-                return Response(True)
-            elif cache.ttl("access_token") <= 0 and cache.get("refresh_token"):
-                return refresh_token()
-        elif cache.get("refresh_token"):
-            return refresh_token()
-        return Response(False)
+        if yahoo_oauth.authorized:
+            try:
+                user_guid_xml = yahoo_oauth.get(
+                    f'{config("YAHOO_SPORTS_API")}/users;use_login=1',
+                )
+                response_dict = xmltodict.parse(user_guid_xml.text)
+                return Response({
+                    'loggedIn': yahoo_oauth.authorized,
+                    'user': response_dict['fantasy_content']['users']['user']['guid']
+                })
+            except Exception as e:
+                raise Exception(e)
+        return Response({'loggedIn': False, 'user': None})
 
 
 class GetUserView(APIView):
     def get(self, request):
-        return Response(get_user())
+        try:
+            user_guid_xml = yahoo_oauth.get(
+                f'{config("YAHOO_SPORTS_API")}/users;use_login=1',
+            )
+            response_dict = xmltodict.parse(user_guid_xml.text)
+            return response_dict["fantasy_content"]["users"]["user"]["guid"]
+        except Exception as e:
+            return None

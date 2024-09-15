@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # installed packages
+    'django_extensions',
     'rest_framework',
+    'sslserver',
     # created projects
     'hbl',
     'spotify'
@@ -145,6 +147,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

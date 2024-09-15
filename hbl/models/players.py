@@ -17,10 +17,9 @@ class Position(models.TextChoices):
 
 
 class HBLPlayer(models.Model):
-    player_id = models.IntegerField(null=True)
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
-    yahoo_player_key = models.CharField(max_length=20, null=True)
+    yahoo_player_id = models.CharField(max_length=20, null=True)
     team_name = models.CharField(max_length=30, null=True)
     primary_position = models.CharField(
         max_length=4, choices=Position.choices, default=Position.UTIL
@@ -38,8 +37,13 @@ class HBLPlayer(models.Model):
     seasons_on_team = models.IntegerField(default=0)
     four_keeper_cost = models.BooleanField(default=False)
 
+    @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def yahoo_player_key(self):
+        return f'{"YAHOO_GAME_ID"}.p.{self.yahoo_player_id}'
 
 
 class HBLProspect(models.Model):
