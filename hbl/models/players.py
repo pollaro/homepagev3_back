@@ -33,8 +33,8 @@ class HBLPlayer(models.Model):
         HBLTeam, related_name="previous_team", on_delete=models.SET_NULL, null=True
     )
     keeper_cost_current = models.IntegerField(default=0)
-    keeper_cost_next = models.IntegerField(default=1)
     seasons_on_team = models.IntegerField(default=0)
+    consecutive_seasons = models.IntegerField(default=0)
     four_keeper_cost = models.BooleanField(default=False)
 
     @property
@@ -44,6 +44,9 @@ class HBLPlayer(models.Model):
     @property
     def yahoo_player_key(self):
         return f'{"YAHOO_GAME_ID"}.p.{self.yahoo_player_id}'
+
+    def calculate_keeper_cost(self):
+        pass
 
 
 class HBLProspect(models.Model):

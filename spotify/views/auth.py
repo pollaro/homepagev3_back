@@ -49,6 +49,13 @@ class SpotifyRedirectView(APIView):
             """
         )
 
+
+class SpotifyCheckLoggedInView(APIView):
+    def get(self, request):
+        if request.session.get('token'):
+            return Response({'loggedIn': True})
+        return Response({'loggedIn': False})
+
 class SpotifyLogoutView(APIView):
     def get(self, request):
         del request.session['token']

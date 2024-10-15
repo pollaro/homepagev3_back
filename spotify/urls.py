@@ -13,4 +13,5 @@ urlpatterns = [
     re_path(r'^playlists/?$', PlaylistView.as_view()),
     re_path(r'^setlist/?$', SetlistView.as_view()),
     re_path(r'^song/?$', TrackSearchView.as_view()),
+    re_path(r'^check/?$', TrackSearchView.as_view()),
 ]

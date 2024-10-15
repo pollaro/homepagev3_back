@@ -27,6 +27,7 @@ class HBLAddPlayer(HBLTransaction):
 
 class HBLDropPlayer(HBLTransaction):
     yahoo_id = models.IntegerField()
+    waiver = models.BooleanField(default=False)
     add = models.ForeignKey(
-        HBLAddPlayer, related_name="dropped_for", on_delete=models.SET_NULL, null=True
+        HBLAddPlayer, related_name="dropped_for", null=True
     )
