@@ -24,8 +24,10 @@ MarkupSafe==2.1.5
 matplotlib-inline==0.1.7
 mypy-extensions==1.0.0
 mysqlclient==2.2.4
+numpy==2.1.2
 oauthlib==3.2.2
 packaging==24.0
+pandas==2.2.3
 parso==0.8.4
 pathspec==0.12.1
 pexpect==4.9.0
@@ -37,7 +39,9 @@ pure_eval==0.2.3
 pycparser==2.22
 Pygments==2.18.0
 pyOpenSSL==24.1.0
+python-dateutil==2.9.0.post0
 python-decouple==3.8
+pytz==2024.2
 requests==2.31.0
 requests-oauthlib==2.0.0
 six==1.16.0
@@ -46,6 +50,7 @@ stack-data==0.6.3
 tomli==2.0.1
 traitlets==5.14.3
 typing_extensions==4.11.0
+tzdata==2024.2
 urllib3==2.2.1
 wcwidth==0.2.13
 Werkzeug==3.0.3

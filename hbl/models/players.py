@@ -36,6 +36,7 @@ class HBLPlayer(models.Model):
     seasons_on_team = models.IntegerField(default=0)
     consecutive_seasons = models.IntegerField(default=0)
     four_keeper_cost = models.BooleanField(default=False)
+    four_keeper_years = models.IntegerField(default=0)
 
     @property
     def full_name(self):
@@ -46,8 +47,20 @@ class HBLPlayer(models.Model):
         return f'{"YAHOO_GAME_ID"}.p.{self.yahoo_player_id}'
 
     def calculate_keeper_cost(self):
-        pass
+        if self.four_keeper_cost and self.four_keeper_years <= 4:
+            self.keeper_cost_current = 2
+        elif self.seasons_on_team <= 3 or self.consecutive_seasons <= 3:
+            self.current_keeper_cost = 1
+        elif self.seasons_on_team <= 6 or self.consecutive_seasons <= 6:
+            self.current_keeper_cost = 2
+        elif self.seasons_on_team > 6 or self.consecutive_seasons > 6:
+            self.current_keeper_cost = 4
 
+    def save(self, *args, **kwargs):
+        if self.keeper_cost_current == 4 and not self.four_keeper_cost:
+            self.four_keeper_cost = True
+            self.four_keeper_years = 1
+        super().save(**kwargs)
 
 class HBLProspect(models.Model):
     first_name = models.CharField(max_length=20)

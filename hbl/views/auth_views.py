@@ -76,9 +76,11 @@ class CheckedLoggedIn(APIView):
                     f'{config("YAHOO_SPORTS_API")}/users;use_login=1',
                 )
                 response_dict = xmltodict.parse(user_guid_xml.text)
+                jimOrGreg = response_dict['fantasy_content']['users']['user']['guid'] in [config('GREG_GUID'), config('JIM_GUID')]
                 return Response({
                     'loggedIn': yahoo_oauth.authorized,
-                    'user': response_dict['fantasy_content']['users']['user']['guid']
+                    'user': response_dict['fantasy_content']['users']['user']['guid'],
+                    'jimOrGreg': jimOrGreg
                 })
             except Exception as e:
                 raise Exception(e)
