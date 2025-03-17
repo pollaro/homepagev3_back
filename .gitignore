@@ -161,3 +161,6 @@ cython_debug/
 
 # Certificates
 *.pem
+
+.my_pgpass
+.pg_service.conf

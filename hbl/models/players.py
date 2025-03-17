@@ -17,26 +17,29 @@ class Position(models.TextChoices):
 
 
 class HBLPlayer(models.Model):
-    first_name = models.CharField(max_length=20)
-    last_name = models.CharField(max_length=20)
-    yahoo_player_id = models.CharField(max_length=20, null=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    yahoo_player_id = models.CharField(max_length=50, null=True)
     team_name = models.CharField(max_length=30, null=True)
     primary_position = models.CharField(
         max_length=4, choices=Position.choices, default=Position.UTIL
     )
-    display_positions = models.CharField(max_length=20, default=primary_position)
+    display_positions = models.CharField(max_length=50, default=primary_position)
     player_status = models.CharField(max_length=10, null=True)
     hbl_team = models.ForeignKey(
-        HBLTeam, related_name="team", on_delete=models.SET_NULL, null=True
+        HBLTeam, related_name="players", on_delete=models.SET_NULL, null=True
     )
     previous_hbl_team = models.ForeignKey(
-        HBLTeam, related_name="previous_team", on_delete=models.SET_NULL, null=True
+        HBLTeam, related_name="previous_players", on_delete=models.SET_NULL, null=True
     )
     keeper_cost_current = models.IntegerField(default=0)
     seasons_on_team = models.IntegerField(default=0)
     consecutive_seasons = models.IntegerField(default=0)
     four_keeper_cost = models.BooleanField(default=False)
     four_keeper_years = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
     @property
     def full_name(self):
@@ -63,15 +66,15 @@ class HBLPlayer(models.Model):
         super().save(**kwargs)
 
 class HBLProspect(models.Model):
-    first_name = models.CharField(max_length=20)
-    last_name = models.CharField(max_length=20)
-    yahoo_player_key = models.CharField(max_length=20, null=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    yahoo_player_key = models.CharField(max_length=50, null=True)
     team_name = models.CharField(max_length=30, null=True)
     primary_position = models.CharField(
         max_length=4, choices=Position.choices, default=Position.UTIL
     )
     hbl_team = models.ForeignKey(
-        HBLTeam, related_name="prospects_team", on_delete=models.SET_NULL, null=True
+        HBLTeam, related_name="prospects", on_delete=models.SET_NULL, null=True
     )
     player_status = models.CharField(max_length=10, null=True)
 

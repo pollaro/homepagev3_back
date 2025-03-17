@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
-import dj_database_url
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,7 +41,6 @@ INSTALLED_APPS = [
     # installed packages
     'django_extensions',
     'rest_framework',
-    'sslserver',
     # created projects
     'hbl',
     'spotify'
@@ -66,10 +64,18 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 # Databases
 DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
-        conn_max_age=500, conn_health_checks=True
-    )
+    # 'default': dj_database_url.config(
+    #     default=config('DATABASE_URL'),
+    #     conn_max_age=500, conn_health_checks=True
+    # )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+    }
 }
 
 ROOT_URLCONF = 'homepagev3_back.urls'
@@ -147,7 +153,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False if config('DEBUG', cast=bool) else True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 

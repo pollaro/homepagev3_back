@@ -2,6 +2,7 @@ from decouple import config
 from django.http import HttpResponse
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,8 +24,9 @@ spotify_oauth.token_updater = token_updater
 
 class SpotifyAuthView(APIView):
     def get(self, request):
-        # if spotify_oauth.token is not None:
-        #     return Response({'loggedIn': True}, status=status.HTTP_200_OK)
+        if request.session.get('token'):
+            spotify_oauth.token = request.session.get('token')
+            return Response({'loggedIn': True}, status=status.HTTP_200_OK)
         auth_url, state = spotify_oauth.authorization_url(SPOTIFY_AUTHORIZE_URL)
         return Response(auth_url)
 

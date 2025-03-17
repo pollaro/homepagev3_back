@@ -1,6 +1,6 @@
 from django.urls import re_path
 
-from spotify.views.auth import SpotifyAuthView, SpotifyLogoutView, SpotifyRedirectView
+from spotify.views.auth import SpotifyAuthView, SpotifyCheckLoggedInView, SpotifyLogoutView, SpotifyRedirectView
 from spotify.views.playlist import PlaylistView, SetlistView, TrackSearchView
 from spotify.views.user import UserTracksView, UserView
 
@@ -13,5 +13,5 @@ urlpatterns = [
     re_path(r'^playlists/?$', PlaylistView.as_view()),
     re_path(r'^setlist/?$', SetlistView.as_view()),
     re_path(r'^song/?$', TrackSearchView.as_view()),
-    re_path(r'^check/?$', TrackSearchView.as_view()),
+    re_path(r'^check/?$', SpotifyCheckLoggedInView.as_view()),
 ]

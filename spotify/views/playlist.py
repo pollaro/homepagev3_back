@@ -1,5 +1,5 @@
 import json
-import urllib
+from urllib.parse import quote
 
 import requests
 from decouple import config
@@ -70,8 +70,8 @@ class SetlistView(APIView):
 
 class TrackSearchView(APIView):
     def get(self, request):
-        track_query = urllib.parse.quote(request.query_params.get('track'))
-        artist_query = urllib.parse.quote(request.query_params.get('artist'))
+        track_query = quote(request.query_params.get('track'))
+        artist_query = quote(request.query_params.get('artist'))
         search_url = f'https://api.spotify.com/v1/search?q=track%3{track_query}'
         if artist_query:
             search_url += f'%2520artist%3{artist_query}'
