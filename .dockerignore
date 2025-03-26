@@ -1,0 +1,11 @@
+.git
+*.md
+.cache
+.DS_Store
+.env
+__pycache__
+*.pyc
+*.pyo
+.Python
+env
+*.log

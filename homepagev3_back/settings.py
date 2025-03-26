@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = [] if DEBUG else ['.jimpollaro.com']
+ALLOWED_HOSTS = [] if DEBUG else config('ALLOWED_HOSTS').split(',')
 
 OAUTHLIB_INSECURE_TRANSPORT = True if DEBUG else False
 # Application definition
@@ -69,7 +69,7 @@ DATABASES = {
     #     conn_max_age=500, conn_health_checks=True
     # )
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.{}'.format(config('DB_ENGINE', 'sqlite3')),
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
